@@ -19,20 +19,12 @@ func main() {
 	// Filter rows for Engineering department and age > 40
 	processor.AddOperation(bigcsv.FilterRows{
 		Condition: func(record []string) bool {
-			if len(record) < 6 {
-				return false
-			}
 			department := record[2]
-			age, err := strconv.Atoi(record[4])
-			if err != nil {
-				return false
-			}
+			age, _ := strconv.Atoi(record[4])
 			return department == "Engineering" && age > 40
 		},
 	})
-
-	// Get the salary column (index 5)
-	processor.AddOperation(bigcsv.GetColumn{ColumnIndex: 5})
+	processor.AddOperation(bigcsv.GetColumns{ColumnIndices: []int{0, 1, 5}})
 
 	// Process the CSV file
 	err = processor.Process()
@@ -41,5 +33,4 @@ func main() {
 	}
 
 	fmt.Println("CSV processing complete. Results written to output.csv")
-	fmt.Println("The output file contains salaries of Engineering employees over 40 years old.")
 }
