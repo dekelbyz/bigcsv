@@ -6,13 +6,14 @@ import (
 	"os"
 )
 
+// CSVHandlerInterface defines the contract for CSV handling operations
 type CSVHandlerInterface interface {
 	ReadBatch(batchSize int) (Table, error)
 	WriteBatch(batch Table) error
 	Close() error
 }
 
-// single responsibility
+// CSVHandler implements CSVHandlerInterface for file-based CSV operations
 type CSVHandler struct {
 	reader *csv.Reader
 	writer *csv.Writer
@@ -20,6 +21,7 @@ type CSVHandler struct {
 	output *os.File
 }
 
+// NewCSVHandler creates a new CSVHandler with the specified input and output files
 func NewCSVHandler(inputFile, outputFile string) (*CSVHandler, error) {
 	input, err := os.Open(inputFile)
 	if err != nil {
@@ -40,7 +42,7 @@ func NewCSVHandler(inputFile, outputFile string) (*CSVHandler, error) {
 	}, nil
 }
 
-// open closed
+// ReadBatch reads up to batchSize rows from the CSV file
 func (ch *CSVHandler) ReadBatch(batchSize int) (Table, error) {
 	batch := make(Table, 0, batchSize)
 	for i := 0; i < batchSize; i++ {
@@ -56,6 +58,7 @@ func (ch *CSVHandler) ReadBatch(batchSize int) (Table, error) {
 	return batch, nil
 }
 
+// WriteBatch writes a batch of rows to the CSV file
 func (ch *CSVHandler) WriteBatch(batch Table) error {
 	for _, row := range batch {
 		if err := ch.writer.Write(row); err != nil {
@@ -65,6 +68,7 @@ func (ch *CSVHandler) WriteBatch(batch Table) error {
 	return nil
 }
 
+// Close flushes any buffered data and closes both input and output files
 func (ch *CSVHandler) Close() error {
 	ch.writer.Flush()
 	if err := ch.input.Close(); err != nil {

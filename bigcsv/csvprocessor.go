@@ -1,5 +1,6 @@
 package bigcsv
 
+// CSVProcessor orchestrates the processing of CSV data using a series of operations
 type CSVProcessor struct {
 	operations []Operation
 	batchSize  int
@@ -13,10 +14,12 @@ func NewCSVProcessor(batchSize int, handler CSVHandlerInterface) *CSVProcessor {
 	}
 }
 
+// AddOperation adds a new operation to the processing pipeline
 func (cp *CSVProcessor) AddOperation(op Operation) {
 	cp.operations = append(cp.operations, op)
 }
 
+// ProcessBatch applies all operations to a single batch of data
 func (cp *CSVProcessor) ProcessBatch(batch Table) (Table, error) {
 	result := batch
 	for _, op := range cp.operations {
@@ -39,7 +42,7 @@ func (cp *CSVProcessor) Process() error {
 		}
 
 		if len(batch) == 0 {
-			break
+			break // End of input reached
 		}
 
 		processedBatch, err := cp.ProcessBatch(batch)

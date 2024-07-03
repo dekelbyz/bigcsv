@@ -9,14 +9,16 @@ import (
 )
 
 func main() {
+	// Initialize CSV handler for input and output files
 	handler, err := bigcsv.NewCSVHandler("input.csv", "output.csv")
 	if err != nil {
 		log.Fatalf("Error creating CSV handler: %v", err)
 	}
 
-	processor := bigcsv.NewCSVProcessor(10, handler) // batch size of 10
+	// Create a new CSV processor with batch size of 10
+	processor := bigcsv.NewCSVProcessor(10, handler)
 
-	// Filter rows for Engineering department and age > 40
+	// Add operation to filter rows:
 	processor.AddOperation(bigcsv.FilterRows{
 		Condition: func(record []string) bool {
 			department := record[2]
@@ -24,9 +26,10 @@ func main() {
 			return department == "Engineering" && age > 40
 		},
 	})
+
+	// Add operation to select specific columns:
 	processor.AddOperation(bigcsv.GetColumns{ColumnIndices: []int{0, 1, 5}})
 
-	// Process the CSV file
 	err = processor.Process()
 	if err != nil {
 		log.Fatalf("Error processing CSV: %v", err)
