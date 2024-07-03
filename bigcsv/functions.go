@@ -1,10 +1,5 @@
 package bigcsv
 
-import (
-	"math"
-	"strconv"
-)
-
 type FilterRows struct {
 	Condition func(record []string) bool
 }
@@ -36,27 +31,6 @@ func (gc GetColumns) Execute(input Table) (Table, error) {
 			}
 		}
 		result = append(result, newRow)
-	}
-	return result, nil
-}
-
-type Ceil struct {
-	ColumnIndices []int
-}
-
-func (c Ceil) Execute(input Table) (Table, error) {
-	result := make(Table, len(input))
-	for i, row := range input {
-		newRow := make([]string, len(row))
-		copy(newRow, row)
-		for _, index := range c.ColumnIndices {
-			if index < len(row) {
-				if val, err := strconv.ParseFloat(row[index], 64); err == nil {
-					newRow[index] = strconv.FormatFloat(math.Ceil(val), 'f', 0, 64)
-				}
-			}
-		}
-		result[i] = newRow
 	}
 	return result, nil
 }
