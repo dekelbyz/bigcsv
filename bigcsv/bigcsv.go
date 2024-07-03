@@ -9,8 +9,17 @@ import (
 type Operation interface {
 	Execute(input [][]string) ([][]string, error)
 }
+
 type CSVProcessor struct {
 	operations []Operation
+	batchSize  int // New field to determine how many rows to process at once
+}
+
+// New constructor function to create a CSVProcessor with a specified batch size
+func NewCSVProcessor(batchSize int) *CSVProcessor {
+	return &CSVProcessor{
+		batchSize: batchSize,
+	}
 }
 
 func (cp *CSVProcessor) AddOperation(op Operation) {
@@ -35,19 +44,30 @@ func (cp *CSVProcessor) Process(inputFile, outputFile string) error {
 	// Create CSV reader and writer
 	reader := csv.NewReader(input)
 	writer := csv.NewWriter(output)
+	defer writer.Flush() // Ensure all data is written before closing
 
-	// Process the CSV file line by line
+	// Process the CSV file in batches
 	for {
-		record, err := reader.Read()
-		if err == io.EOF {
+		// Read a batch of records
+		batch := make([][]string, 0, cp.batchSize)
+		for i := 0; i < cp.batchSize; i++ {
+			record, err := reader.Read()
+			if err == io.EOF {
+				break // End of file reached
+			}
+			if err != nil {
+				return err // Other error occurred
+			}
+			batch = append(batch, record)
+		}
+
+		// If batch is empty, we've reached the end of the file
+		if len(batch) == 0 {
 			break
 		}
-		if err != nil {
-			return err
-		}
 
-		// Apply all operations to the current row
-		result := [][]string{record}
+		// Apply all operations to the current batch
+		result := batch
 		for _, op := range cp.operations {
 			result, err = op.Execute(result)
 			if err != nil {
@@ -63,6 +83,5 @@ func (cp *CSVProcessor) Process(inputFile, outputFile string) error {
 		}
 	}
 
-	writer.Flush()
-	return writer.Error()
+	return writer.Error() // Return any error that occurred during writing
 }
