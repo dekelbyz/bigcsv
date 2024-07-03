@@ -7,7 +7,7 @@ import (
 )
 
 type Operation interface {
-	Execute(input [][]string) ([][]string, error)
+	Execute(input [][]string) ([][]string, error) //
 }
 
 // CSVHandler handles reading from and writing to CSV files
