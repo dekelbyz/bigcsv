@@ -4,8 +4,8 @@ import "strconv"
 
 type FilterEvenAges struct{}
 
-func (f FilterEvenAges) Execute(input [][]string) ([][]string, error) {
-	var result [][]string
+func (f FilterEvenAges) Execute(input Table) (Table, error) {
+	var result Table
 	for _, row := range input {
 		if len(row) >= 5 {
 			age, err := strconv.Atoi(row[4])
