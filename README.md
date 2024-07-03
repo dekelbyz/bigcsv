@@ -1,3 +1,3 @@
 # coralogix-home-assignment
 
-* separate files
+* change 'getColumn' to 'GetColumns'
