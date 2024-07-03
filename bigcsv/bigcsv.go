@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"io"
 	"os"
-	"strconv"
 )
 
 type Table [][]string
@@ -133,34 +132,4 @@ func (cp *CSVProcessor) Process() error {
 	}
 
 	return nil
-}
-
-// #### //
-type FilterEvenAges struct{}
-
-func (f FilterEvenAges) Execute(input Table) (Table, error) {
-	var result Table
-	for _, row := range input {
-		if len(row) >= 5 {
-			age, err := strconv.Atoi(row[4])
-			if err == nil && age%2 == 0 {
-				result = append(result, row)
-			}
-		}
-	}
-	return result, nil
-}
-
-type FilterByDepartment struct {
-	Department string
-}
-
-func (f FilterByDepartment) Execute(input Table) (Table, error) {
-	var result Table
-	for _, row := range input {
-		if len(row) >= 3 && row[2] == f.Department {
-			result = append(result, row)
-		}
-	}
-	return result, nil
 }
