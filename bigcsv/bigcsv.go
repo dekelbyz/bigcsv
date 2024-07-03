@@ -6,13 +6,19 @@ import (
 	"os"
 )
 
-// New type alias for [][]string
 type Table [][]string
 
 type Operation interface {
 	Execute(input Table) (Table, error)
 }
 
+type CSVHandlerInterface interface {
+	ReadBatch(batchSize int) (Table, error)
+	WriteBatch(batch Table) error
+	Close() error
+}
+
+// single responsibility
 type CSVHandler struct {
 	reader *csv.Reader
 	writer *csv.Writer
@@ -40,14 +46,7 @@ func NewCSVHandler(inputFile, outputFile string) (*CSVHandler, error) {
 	}, nil
 }
 
-func (ch *CSVHandler) Close() error {
-	ch.writer.Flush()
-	if err := ch.input.Close(); err != nil {
-		return err
-	}
-	return ch.output.Close()
-}
-
+// open closed
 func (ch *CSVHandler) ReadBatch(batchSize int) (Table, error) {
 	batch := make(Table, 0, batchSize)
 	for i := 0; i < batchSize; i++ {
@@ -72,14 +71,24 @@ func (ch *CSVHandler) WriteBatch(batch Table) error {
 	return nil
 }
 
+func (ch *CSVHandler) Close() error {
+	ch.writer.Flush()
+	if err := ch.input.Close(); err != nil {
+		return err
+	}
+	return ch.output.Close()
+}
+
 type CSVProcessor struct {
 	operations []Operation
 	batchSize  int
+	handler    CSVHandlerInterface
 }
 
-func NewCSVProcessor(batchSize int) *CSVProcessor {
+func NewCSVProcessor(batchSize int, handler CSVHandlerInterface) *CSVProcessor {
 	return &CSVProcessor{
 		batchSize: batchSize,
+		handler:   handler,
 	}
 }
 
@@ -99,15 +108,11 @@ func (cp *CSVProcessor) ProcessBatch(batch Table) (Table, error) {
 	return result, nil
 }
 
-func (cp *CSVProcessor) Process(inputFile, outputFile string) error {
-	handler, err := NewCSVHandler(inputFile, outputFile)
-	if err != nil {
-		return err
-	}
-	defer handler.Close()
+func (cp *CSVProcessor) Process() error {
+	defer cp.handler.Close()
 
 	for {
-		batch, err := handler.ReadBatch(cp.batchSize)
+		batch, err := cp.handler.ReadBatch(cp.batchSize)
 		if err != nil {
 			return err
 		}
@@ -121,7 +126,7 @@ func (cp *CSVProcessor) Process(inputFile, outputFile string) error {
 			return err
 		}
 
-		if err := handler.WriteBatch(processedBatch); err != nil {
+		if err := cp.handler.WriteBatch(processedBatch); err != nil {
 			return err
 		}
 	}
