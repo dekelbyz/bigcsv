@@ -1,4 +1,4 @@
-# coralogix-home-assignment
+# bigcsv
 
 
 This application processes large CSV files efficiently using batch operations.
